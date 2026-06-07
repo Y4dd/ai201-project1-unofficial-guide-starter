@@ -25,7 +25,8 @@ class DocumentChunk:
     char_count: int
 
 
-def load_document(path: Path) -> str: ...
+def load_document(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
 
 def clean_document(text: str) -> str: ...
 
