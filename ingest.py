@@ -37,7 +37,45 @@ def clean_document(text: str) -> str:
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
 
-def chunk_document(text: str, source_file: str) -> list[DocumentChunk]: ...
+def chunk_document(text: str, source_file: str) -> list[DocumentChunk]:
+    stem = Path(source_file).stem
+    lines = text.splitlines()
+    chunks: list[DocumentChunk] = []
+    current_header = ""
+    current_lines: list[str] = []
+    chunk_index = 0
+
+    def _flush(header: str, body_lines: list[str]) -> DocumentChunk | None:
+        nonlocal chunk_index
+        body = "\n".join(body_lines).strip()
+        full_text = f"{header}\n{body}".strip() if header else body
+        if len(full_text) < MIN_CHUNK_CHARS:
+            return None
+        chunk = DocumentChunk(
+            chunk_id=f"{stem}_{chunk_index}",
+            source_file=source_file,
+            header=header,
+            text=full_text,
+            char_count=len(full_text),
+        )
+        chunk_index += 1
+        return chunk
+
+    for line in lines:
+        if _HEADER_RE.match(line):
+            chunk = _flush(current_header, current_lines)
+            if chunk:
+                chunks.append(chunk)
+            current_header = line
+            current_lines = []
+        else:
+            current_lines.append(line)
+
+    chunk = _flush(current_header, current_lines)
+    if chunk:
+        chunks.append(chunk)
+
+    return chunks
 
 def load_all_documents(docs_dir: Path = DOCS_DIR) -> list[DocumentChunk]: ...
 
