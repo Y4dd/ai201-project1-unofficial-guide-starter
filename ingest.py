@@ -77,7 +77,12 @@ def chunk_document(text: str, source_file: str) -> list[DocumentChunk]:
 
     return chunks
 
+def make_embedding_function() -> SentenceTransformerEmbeddingFunction:
+    return SentenceTransformerEmbeddingFunction(model_name=EMBEDDING_MODEL)
+
 def load_all_documents(docs_dir: Path = DOCS_DIR) -> list[DocumentChunk]:
+    if not docs_dir.exists():
+        raise FileNotFoundError(f"Documents directory not found: {docs_dir}")
     all_chunks: list[DocumentChunk] = []
     for path in sorted(docs_dir.glob("*.md")):
         raw = load_document(path)
@@ -90,12 +95,13 @@ def load_all_documents(docs_dir: Path = DOCS_DIR) -> list[DocumentChunk]:
     return all_chunks
 
 def validate_chunks(chunks: list[DocumentChunk]) -> None:
-    assert len(chunks) > 0, "No chunks produced — check documents/ path"
+    if not chunks:
+        raise ValueError("No chunks produced — check documents/ path and that *.md files exist")
     for chunk in chunks:
-        assert chunk.char_count > 0
-        assert len(chunk.text) == chunk.char_count, (
-            f"char_count mismatch on {chunk.chunk_id}"
-        )
+        if chunk.char_count <= 0:
+            raise ValueError(f"Invalid char_count on {chunk.chunk_id}: {chunk.char_count}")
+        if len(chunk.text) != chunk.char_count:
+            raise ValueError(f"char_count mismatch on {chunk.chunk_id}")
 
     print(f"\n=== Validation: {len(chunks)} total chunks across all documents ===\n")
     seen_files: set[str] = set()
@@ -134,7 +140,7 @@ def main() -> None:
     validate_chunks(chunks)
 
     print(f"Loading {len(chunks)} chunks into ChromaDB at {CHROMA_DB_PATH}...")
-    ef = SentenceTransformerEmbeddingFunction(model_name=EMBEDDING_MODEL)
+    ef = make_embedding_function()
     client = chromadb.PersistentClient(path=str(CHROMA_DB_PATH))
     collection = client.get_or_create_collection(
         name=COLLECTION_NAME,
