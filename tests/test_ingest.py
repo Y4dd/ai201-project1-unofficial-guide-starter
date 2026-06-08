@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest.mock import MagicMock
 import pytest
 from ingest import (
     DocumentChunk,
@@ -164,3 +165,32 @@ def test_load_all_documents_raises_on_bad_file(tmp_path: Path) -> None:
 
 def test_load_all_documents_empty_dir_returns_empty_list(tmp_path: Path) -> None:
     assert load_all_documents(tmp_path) == []
+
+
+def test_load_into_chromadb_calls_upsert_with_correct_args() -> None:
+    chunks = [
+        DocumentChunk(
+            chunk_id="source7_0",
+            source_file="source7_michigan_tenant_law.md",
+            header="## Maximum Deposit Limit",
+            text="## Maximum Deposit Limit\nLandlords may charge no more than 1.5× monthly rent.",
+            char_count=79,
+        ),
+        DocumentChunk(
+            chunk_id="source7_1",
+            source_file="source7_michigan_tenant_law.md",
+            header="## The 30-Day Return Deadline",
+            text="## The 30-Day Return Deadline\nLandlord has 30 days to return the deposit.",
+            char_count=72,
+        ),
+    ]
+    mock_collection = MagicMock()
+    load_into_chromadb(chunks, mock_collection)
+    mock_collection.upsert.assert_called_once_with(
+        ids=["source7_0", "source7_1"],
+        documents=[chunks[0].text, chunks[1].text],
+        metadatas=[
+            {"source_file": "source7_michigan_tenant_law.md", "header": "## Maximum Deposit Limit", "char_count": 79},
+            {"source_file": "source7_michigan_tenant_law.md", "header": "## The 30-Day Return Deadline", "char_count": 72},
+        ],
+    )

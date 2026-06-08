@@ -118,7 +118,15 @@ def validate_chunks(chunks: list[DocumentChunk]) -> None:
     print(f"{'─' * 60}")
     print("Validation passed.\n")
 
-def load_into_chromadb(chunks: list[DocumentChunk], collection: chromadb.Collection) -> None: ...
+def load_into_chromadb(chunks: list[DocumentChunk], collection: chromadb.Collection) -> None:
+    collection.upsert(
+        ids=[c.chunk_id for c in chunks],
+        documents=[c.text for c in chunks],
+        metadatas=[
+            {"source_file": c.source_file, "header": c.header, "char_count": c.char_count}
+            for c in chunks
+        ],
+    )
 
 def main() -> None: ...
 
