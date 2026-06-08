@@ -11,6 +11,16 @@
 
 <!-- What domain did you choose? Why is this knowledge valuable and hard to find through official channels? -->
 
+On and Off Campus housing and landlord navigation at Western Michigan University
+This knowledge is valuable because:
+
+- Selecting housing is a small choice with year-long consequences due to leasing requirements
+- The On-campus official university resources are vague and hard to navigate
+- The Off-Campus only showcase polished best-case scenarios
+- I had a very bad personal experience finding housing
+
+This RAG should provide a system of clarity aiding in the choice of housing.
+
 ---
 
 ## Documents
@@ -138,6 +148,8 @@ style G fill:#bfb,stroke:#333,stroke-width:1px,color:#000
 When navigating decisions I'm not an expert in, I usually prompt AI to research the current theoretical approaches then use [Decision Council](https://github.com/gcpdev/llm-council-skill) skill by supplying it said information and current project requirements, then re-iterate through discussion and critical thinking
 
 Once I have a theoretical solution I'm satisfied with I commit the architectural plan in a separate implementation markdown file, compact the conversation then use [https://github.com/obra/superpowers] skills to Plan; Write tests; Implement; Review the implementation.
+
+Each step of the milestone will have it's own spec markdown.
 
 ### **Milestone 3 — Ingestion and chunking:**
 

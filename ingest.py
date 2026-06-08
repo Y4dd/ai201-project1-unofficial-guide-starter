@@ -125,6 +125,8 @@ def validate_chunks(chunks: list[DocumentChunk]) -> None:
     print("Validation passed.\n")
 
 def load_into_chromadb(chunks: list[DocumentChunk], collection: chromadb.Collection) -> None:
+    if not chunks:
+        return
     collection.upsert(
         ids=[c.chunk_id for c in chunks],
         documents=[c.text for c in chunks],

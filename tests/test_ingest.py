@@ -194,3 +194,26 @@ def test_load_into_chromadb_calls_upsert_with_correct_args() -> None:
             {"source_file": "source7_michigan_tenant_law.md", "header": "## The 30-Day Return Deadline", "char_count": 72},
         ],
     )
+
+
+def test_load_into_chromadb_skips_upsert_on_empty_list() -> None:
+    mock_collection = MagicMock()
+    load_into_chromadb([], mock_collection)
+    mock_collection.upsert.assert_not_called()
+
+
+def test_validate_chunks_raises_on_empty_list() -> None:
+    with pytest.raises(ValueError, match="No chunks produced"):
+        validate_chunks([])
+
+
+def test_validate_chunks_raises_on_char_count_mismatch() -> None:
+    chunk = DocumentChunk(
+        chunk_id="x_0",
+        source_file="x.md",
+        header="## H",
+        text="hello world this is long enough text",
+        char_count=999,
+    )
+    with pytest.raises(ValueError, match="char_count mismatch"):
+        validate_chunks([chunk])
