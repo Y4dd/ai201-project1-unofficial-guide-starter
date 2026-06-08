@@ -48,7 +48,7 @@ def test_chunk_document_splits_on_h2() -> None:
     assert chunks[1].header == "## Section Two"
 
 
-def test_chunk_document_splits_on_h3() -> None:
+def test_chunk_document_h3_stays_in_parent_h2_chunk() -> None:
     text = (
         "## Overview\n"
         "Introductory content that is long enough to pass the minimum chunk length filter.\n\n"
@@ -56,9 +56,10 @@ def test_chunk_document_splits_on_h3() -> None:
         "Subsection content that is also long enough to pass the minimum chunk length filter."
     )
     chunks = chunk_document(text, "test.md")
-    assert len(chunks) == 2
+    assert len(chunks) == 1
     assert chunks[0].header == "## Overview"
-    assert chunks[1].header == "### Sub Section"
+    assert "### Sub Section" in chunks[0].text
+    assert "Subsection content" in chunks[0].text
 
 
 def test_chunk_document_keeps_table_rows_together() -> None:

@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-_HEADER_RE = re.compile(r"^#{2,3} ")
+_HEADER_RE = re.compile(r"^## ")
 _HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 _HR_RE = re.compile(r"^---+\s*$", re.MULTILINE)
 MIN_CHUNK_CHARS = 80
