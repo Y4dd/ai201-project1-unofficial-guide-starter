@@ -12,5 +12,5 @@ from ingest import (
 
 def test_load_document_reads_file(tmp_path: Path) -> None:
     doc = tmp_path / "test.md"
-    doc.write_text("## Hello\nWorld content.", encoding="utf-8")
-    assert load_document(doc) == "## Hello\nWorld content."
+    doc.write_text("## Hello\nRent is $900 × 1.5 = $1,350.", encoding="utf-8")
+    assert load_document(doc) == "## Hello\nRent is $900 × 1.5 = $1,350."
