@@ -12,7 +12,7 @@ EMBEDDING_MODEL = "multi-qa-MiniLM-L6-cos-v1"
 
 _HEADER_RE = re.compile(r"^#{2,3} ")
 _HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
-_HR_RE = re.compile(r"^---+$", re.MULTILINE)
+_HR_RE = re.compile(r"^---+\s*$", re.MULTILINE)
 MIN_CHUNK_CHARS = 80
 
 
@@ -29,7 +29,10 @@ def load_document(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 def clean_document(text: str) -> str:
-    text = _HTML_COMMENT_RE.sub("", text)
+    cleaned = _HTML_COMMENT_RE.sub("", text)
+    if "<!--" in cleaned:
+        raise ValueError("Unclosed HTML comment in document — content would be silently lost.")
+    text = cleaned
     text = _HR_RE.sub("", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()

@@ -26,12 +26,16 @@ def test_clean_document_strips_html_comments() -> None:
 def test_clean_document_strips_hr_lines() -> None:
     text = "## Section\nContent here.\n\n---\n\n## Next\nMore content."
     result = clean_document(text)
-    assert "---" not in result
-    assert "## Section" in result
-    assert "## Next" in result
+    assert result == "## Section\nContent here.\n\n## Next\nMore content."
 
 
 def test_clean_document_collapses_blank_lines() -> None:
     text = "## Section\nContent.\n\n\n\n## Next\nMore."
     result = clean_document(text)
-    assert "\n\n\n" not in result
+    assert result == "## Section\nContent.\n\n## Next\nMore."
+
+
+def test_clean_document_raises_on_unclosed_comment() -> None:
+    text = "## Section\n<!-- unclosed\nContent that looks fine."
+    with pytest.raises(ValueError, match="Unclosed HTML comment"):
+        clean_document(text)
