@@ -28,7 +28,11 @@ class DocumentChunk:
 def load_document(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
-def clean_document(text: str) -> str: ...
+def clean_document(text: str) -> str:
+    text = _HTML_COMMENT_RE.sub("", text)
+    text = _HR_RE.sub("", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
 
 def chunk_document(text: str, source_file: str) -> list[DocumentChunk]: ...
 
