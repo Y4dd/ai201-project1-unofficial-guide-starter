@@ -3,6 +3,7 @@ import pytest
 from ingest import (
     DocumentChunk,
     load_document,
+    load_all_documents,
     clean_document,
     chunk_document,
     validate_chunks,
@@ -147,7 +148,6 @@ def test_load_all_documents_returns_chunks(tmp_path: Path) -> None:
         "## Only Section\nContent long enough to pass the minimum character length filter here.",
         encoding="utf-8",
     )
-    from ingest import load_all_documents
     chunks = load_all_documents(tmp_path)
     assert len(chunks) == 3
     source_files = {c.source_file for c in chunks}
