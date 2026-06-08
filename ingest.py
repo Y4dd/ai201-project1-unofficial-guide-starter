@@ -81,7 +81,10 @@ def load_all_documents(docs_dir: Path = DOCS_DIR) -> list[DocumentChunk]:
     all_chunks: list[DocumentChunk] = []
     for path in sorted(docs_dir.glob("*.md")):
         raw = load_document(path)
-        cleaned = clean_document(raw)
+        try:
+            cleaned = clean_document(raw)
+        except ValueError as exc:
+            raise ValueError(f"{path.name}: {exc}") from exc
         chunks = chunk_document(cleaned, path.name)
         all_chunks.extend(chunks)
     return all_chunks
@@ -95,7 +98,14 @@ def validate_chunks(chunks: list[DocumentChunk]) -> None:
         )
 
     print(f"\n=== Validation: {len(chunks)} total chunks across all documents ===\n")
-    samples = chunks[:5]
+    seen_files: set[str] = set()
+    samples: list[DocumentChunk] = []
+    for c in chunks:
+        if c.source_file not in seen_files:
+            samples.append(c)
+            seen_files.add(c.source_file)
+        if len(samples) == 5:
+            break
     for i, c in enumerate(samples, 1):
         print(f"{'─' * 60}")
         print(f"[{i}] {c.chunk_id}  |  {c.char_count} chars  |  {c.source_file}")

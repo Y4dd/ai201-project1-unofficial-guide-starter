@@ -153,3 +153,14 @@ def test_load_all_documents_returns_chunks(tmp_path: Path) -> None:
     source_files = {c.source_file for c in chunks}
     assert "source1_test.md" in source_files
     assert "source2_test.md" in source_files
+
+
+def test_load_all_documents_raises_on_bad_file(tmp_path: Path) -> None:
+    bad = tmp_path / "source1_bad.md"
+    bad.write_text("## Section\n<!-- unclosed comment\nContent.", encoding="utf-8")
+    with pytest.raises(ValueError, match="source1_bad.md"):
+        load_all_documents(tmp_path)
+
+
+def test_load_all_documents_empty_dir_returns_empty_list(tmp_path: Path) -> None:
+    assert load_all_documents(tmp_path) == []
