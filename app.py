@@ -8,6 +8,15 @@ def handle_query(question: str) -> tuple[str, str]:
     if not question.strip():
         return "Please enter a question.", ""
     chunks = retrieve(question)
+    print(f"\n{'━' * 70}")
+    print(f"  QUERY: {question}")
+    print(f"{'━' * 70}")
+    for i, c in enumerate(chunks, 1):
+        print(f"  [{i}] {c['source_file']} | {c['header']} | dist={c['distance']:.4f}")
+        for line in c["text"].splitlines():
+            print(f"      {line}")
+        print()
+    print(f"{'─' * 70}\n")
     answer = generate(question, chunks)
     sources = "\n".join(f"• {c['source_file']}" for c in chunks)
     return answer, sources
