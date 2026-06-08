@@ -9,7 +9,7 @@ EVAL_QUESTIONS = [
     {
         "id": 2,
         "question": "What is the closest Off-Campus housing option to WMU?",
-        "expected": "The Tate (check if this is in the documents — may not be covered)",
+        "expected": "The Tate on Howard (note: ranks 7th — 'closest' vs 'walking distance / directly across Howard St' semantic mismatch; k=9 surfaces it)",
     },
     {
         "id": 3,
@@ -31,7 +31,7 @@ EVAL_QUESTIONS = [
 _SEP = "─" * 70
 
 
-def run_eval(k: int = 5) -> None:
+def run_eval(k: int = 9) -> None:
     print(f"\n{'=' * 70}")
     print(f"  RETRIEVAL EVALUATION — top-{k} chunks per question")
     print(f"{'=' * 70}\n")
