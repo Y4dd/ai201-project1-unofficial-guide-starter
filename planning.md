@@ -98,8 +98,8 @@ This RAG should provide a system of clarity aiding in the choice of housing.
      retrieval, chunks that split key information across boundaries. -->
 
 1. I made AI scrape the data, while the general information is correct, integrity is still questionable, I had to manually verify some.
-
 2. By design, this won't reason and answer general questions such as, "Which off-campus apartment complex offers the best price to benefit?"
+   - After implementing milestone 4, the query failed in the comparative question of asking which housing is closest, which proves the concern
 
 ---
 
