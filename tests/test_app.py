@@ -36,6 +36,7 @@ def test_handle_query_empty_question_returns_prompt() -> None:
 
 
 def test_handle_query_empty_question_does_not_call_retrieve() -> None:
-    with patch("app.retrieve") as mock_retrieve:
+    with patch("app.retrieve") as mock_retrieve, patch("app.generate") as mock_generate:
         handle_query("")
     mock_retrieve.assert_not_called()
+    mock_generate.assert_not_called()
