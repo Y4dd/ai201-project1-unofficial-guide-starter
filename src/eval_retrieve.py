@@ -1,4 +1,4 @@
-from retrieve import retrieve
+from src.retrieve import retrieve
 
 EVAL_QUESTIONS = [
     {

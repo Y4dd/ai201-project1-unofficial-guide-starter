@@ -2,7 +2,7 @@ import chromadb
 import pytest
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 
-from retrieve import retrieve
+from src.retrieve import retrieve
 
 _EMBEDDING_MODEL = "multi-qa-MiniLM-L6-cos-v1"
 
