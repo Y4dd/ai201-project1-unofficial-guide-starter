@@ -111,3 +111,25 @@ def test_chunk_document_chunk_id_format() -> None:
     chunks = chunk_document(text, "source1_wmu_residence_halls.md")
     assert chunks[0].chunk_id == "source1_wmu_residence_halls_0"
     assert chunks[1].chunk_id == "source1_wmu_residence_halls_1"
+
+
+def test_chunk_document_preamble_becomes_headerless_chunk() -> None:
+    text = (
+        "# Document Title — WMU Housing Guide\n"
+        "Source: wmich.edu/housing/official-rates and wmich.edu/housing/options/halls\n\n"
+        "## Real Section\n"
+        "Content long enough to pass the minimum character length requirement filter."
+    )
+    chunks = chunk_document(text, "source1_test.md")
+    assert len(chunks) == 2
+    assert chunks[0].header == ""
+    assert "Document Title" in chunks[0].text
+    assert chunks[1].header == "## Real Section"
+
+
+def test_chunk_document_no_headers_returns_single_chunk() -> None:
+    text = "Plain text without any headers. Long enough to exceed the minimum character threshold easily."
+    chunks = chunk_document(text, "test.md")
+    assert len(chunks) == 1
+    assert chunks[0].header == ""
+    assert chunks[0].chunk_id == "test_0"
