@@ -49,13 +49,15 @@ This RAG should provide a system of clarity aiding in the choice of housing.
      - Any preprocessing you did before chunking (e.g., stripping HTML, removing headers)
      - What your final chunk count was across all documents -->
 
-**Chunk size:** One `##` or `###` section per chunk (roughly 200–700 characters each).
+**Chunk size:** One `##` section per chunk (roughly 400–2,000 characters each). `###` subsections are kept inside their parent `##` chunk.
 
-**Overlap:** None. Each section covers one topic (one hall, one complex, one legal rule) so there's nothing useful to carry over.
+**Overlap:** None. Each `##` section covers one topic (one complex, one legal rule, one neighborhood zone) so there is nothing useful to carry over.
 
-**Why these choices fit your documents:** The documents are structured markdown, splitting on headers keeps each section intact as a coherent unit. A fixed character split would cut through pricing tables mid-row, making the retrieved chunk meaningless. Header-based splitting keeps tables whole and matches how a student would actually ask a question.
+**Why these choices fit your documents:** The documents are structured markdown, splitting on `##` headers keeps each section intact as a coherent unit. A fixed character split would cut through pricing tables mid-row, making the retrieved chunk meaningless. Header-based splitting keeps tables whole and matches how a student would actually ask a question.
 
-**Final chunk count:** 128 chunks
+An initial implementation split on both `##` and `###`, producing 126 smaller chunks. This caused context loss: `###` sub-chunks (e.g. `### What Students Say` under `## Hunter's Ridge`) were retrieved without the parent complex name or attributes in scope, causing the LLM to answer without knowing which complex it was discussing. Switching to `##`-only splitting merges subsections into their parent, keeping the full complex profile in one retrievable unit.
+
+**Final chunk count:** 66 chunks
 
 ---
 
@@ -119,9 +121,9 @@ Moreover, in the Gradio UI, The "Retrieved from" is populated separately through
 | #   | Question                                       | Expected answer            | System response (summarized)                                              | Retrieval quality  | Response accuracy  |
 | --- | ---------------------------------------------- | -------------------------- | ------------------------------------------------------------------------- | ------------------ | ------------------ |
 | 1   | Which is cheaper, On-campus or Off-campus?     | Off-Campus                 | Off-campus, specifically renting from individual landlords                | Relevant           | Accurate           |
-| 2   | What is the closest Off-Campus housing option? | The Tate on Howard         | Mentions street and how close but not the name of the appt. cmplx.        | Relevant           | Partially Accurate |
+| 2   | What is the closest Off-Campus housing option? | The Tate on Howard         | The Tate on Howard, walking distance directly across from Haworth College | Relevant           | Accurate           |
 | 3   | How is Off-Campus transportation?              | Mentions Routes + Bus Pass | Explains the routes well, but never mentions fare unless explicitly asked | Partially relevant | Partially Accurate |
-| 4   | Does hunter's ridge include utilities in rent? | Yes, except electric bill  | Sources do not answer it, but inferred that it does not                   | Partially relevant | Accurate           |
+| 4   | Does hunter's ridge include utilities in rent? | Yes, except electric bill  | Yes — internet, cable, water, trash, sewer included; electric billed sep. | Relevant           | Accurate           |
 | 5   | What is the most dangerous place to rent in?   | Near Downtowwn             | Vine District (Downtown)                                                  | Relevant           | Accurate           |
 
 **Retrieval quality:** Relevant / Partially relevant / Off-target  
@@ -146,10 +148,12 @@ Moreover, in the Gradio UI, The "Retrieved from" is populated separately through
 
 **What the system returned:** Off-campus transportation includes WMU-operated campus shuttles and KMetro routes. The WMU-operated shuttles have routes such as Ring Road (#19), Parkview (#25), and the Aviation Shuttle. The KMetro routes that serve the WMU campus include Route 3, Route 16, and Route 21, which stop directly at the WMU campus loading zone. Some apartment complexes, like those on West Main/Drake and the Howard/Kendall corridor, have direct, no-transfer rides to campus via Route 3 or Route 21.
 
-**Root cause (tied to a specific pipeline stage):** Retrieval problem, the question is vague and is less semantically close to the source "KMetro Bus Pass", words like "Price", "Free", "Cost" are not part of the question. i debugged this and found that the chunk containing this is ranked as 7th. I've a test under [tests/eval_retrieve.py](./tests/eval_retrieve.py) with K=9 that retrieves succesfully.
+**Root cause (tied to a specific pipeline stage):** Vocabulary mismatch at the retrieval stage. The query is vague and shares no key vocabulary with the chunk that holds the answer — words like "free", "cost", or "Bronco Card" do not appear in the question. The `## KMetro Routes That Serve WMU Campus` chunk ranked 8th for this query at k=5. Verified via [tests/eval_retrieve.py](./tests/eval_retrieve.py) at k=9, which surfaces it.
 
-**What you would change to fix it:**
-Metadata such as apt. complex name should be taken in consideration when fetching, i would also implement better retreival solutions such as query expansions through the LLM or doing a hybrid search to include semantic matches with cosine similarity since some supplemental information (such as the free bus pass) are not included.
+A secondary issue was also discovered: the original `##/###` chunking strategy split `### What Students Say` and `### Amenities` away from their parent `## Hunter's Ridge` section. This caused Q4 (Hunter's Ridge utilities) to fail entirely — the utility fact was buried in a reviews sub-chunk whose semantic center was noise complaints, not utility policy. Switching to `##`-only chunking fixed Q2 and Q4 (chunk count: 126 → 66).
+
+**What you would change to fix Q3:**
+HyDE (Hypothetical Document Embeddings) — generate a hypothetical answer to the query first using the LLM, then embed that instead of the raw query. The hypothesis would naturally contain "Bronco Card", "free", and "routes", bridging the vocabulary gap before retrieval runs. Alternatively, multi-query retrieval: decompose the vague query into specific sub-queries ("Is bus service free for WMU students?") and union the results.
 
 ---
 
