@@ -133,3 +133,23 @@ def test_chunk_document_no_headers_returns_single_chunk() -> None:
     assert len(chunks) == 1
     assert chunks[0].header == ""
     assert chunks[0].chunk_id == "test_0"
+
+
+def test_load_all_documents_returns_chunks(tmp_path: Path) -> None:
+    doc1 = tmp_path / "source1_test.md"
+    doc2 = tmp_path / "source2_test.md"
+    doc1.write_text(
+        "## Section A\nContent long enough to pass the minimum character length filter here.\n\n"
+        "## Section B\nMore content also long enough to pass the minimum character length filter.",
+        encoding="utf-8",
+    )
+    doc2.write_text(
+        "## Only Section\nContent long enough to pass the minimum character length filter here.",
+        encoding="utf-8",
+    )
+    from ingest import load_all_documents
+    chunks = load_all_documents(tmp_path)
+    assert len(chunks) == 3
+    source_files = {c.source_file for c in chunks}
+    assert "source1_test.md" in source_files
+    assert "source2_test.md" in source_files

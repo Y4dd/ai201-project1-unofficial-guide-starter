@@ -77,9 +77,36 @@ def chunk_document(text: str, source_file: str) -> list[DocumentChunk]:
 
     return chunks
 
-def load_all_documents(docs_dir: Path = DOCS_DIR) -> list[DocumentChunk]: ...
+def load_all_documents(docs_dir: Path = DOCS_DIR) -> list[DocumentChunk]:
+    all_chunks: list[DocumentChunk] = []
+    for path in sorted(docs_dir.glob("*.md")):
+        raw = load_document(path)
+        cleaned = clean_document(raw)
+        chunks = chunk_document(cleaned, path.name)
+        all_chunks.extend(chunks)
+    return all_chunks
 
-def validate_chunks(chunks: list[DocumentChunk]) -> None: ...
+def validate_chunks(chunks: list[DocumentChunk]) -> None:
+    assert len(chunks) > 0, "No chunks produced — check documents/ path"
+    for chunk in chunks:
+        assert chunk.char_count > 0
+        assert len(chunk.text) == chunk.char_count, (
+            f"char_count mismatch on {chunk.chunk_id}"
+        )
+
+    print(f"\n=== Validation: {len(chunks)} total chunks across all documents ===\n")
+    samples = chunks[:5]
+    for i, c in enumerate(samples, 1):
+        print(f"{'─' * 60}")
+        print(f"[{i}] {c.chunk_id}  |  {c.char_count} chars  |  {c.source_file}")
+        print(f"Header: {c.header!r}")
+        print()
+        print(c.text[:400])
+        if c.char_count > 400:
+            print(f"  ... ({c.char_count - 400} more chars)")
+        print()
+    print(f"{'─' * 60}")
+    print("Validation passed.\n")
 
 def load_into_chromadb(chunks: list[DocumentChunk], collection: chromadb.Collection) -> None: ...
 
